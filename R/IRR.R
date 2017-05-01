@@ -1,23 +1,34 @@
-#' Compute the Internal Rate of Return (IRR) of a bond
+#' Compute the Internal Rate of Return (IRR) of an annual coupon payment bond
 #'
-#' @param n nominal
-#' @param y years to maturity
-#' @param c coupn
-#' @param d days after the issue
-#' @param p Net present value
+#' @param nominal nominal of the bond
+#' @param Mat_Date maturity date
+#' @param coupon coupon in percentage of nominal
+#' @param Buy_Date Date of buy, with %Y-%m-%d format
+#' @param price bond price at the buy date
 #'
 #' @return
 #' @export
 #'
 #' @examples
-tir  = function(n = n, y = y, c = c, d = d, p = p) {
+irr = function(nominal = nominal, Mat_Date = Mat_Date, coupon = coupon, Buy_Date = Buy_Date, price = price) {
 
-  # funcion que calcula la tir en tanto por ciento de un bono (el valor de i que hace 0 el van)
-  # n es el nomial del bono
-  # y el numero de años del bono, se considera act / 365
-  # cupon del bono en tanto por uno
-  # dias desde que se pago/emitio el cupon
-  # precio del bono
+  if (all(is.na(as.Date(as.character(Mat_Date),format="%Y-%m-%d")))) {
+
+    stop("Mat_Date argument should be a Date with %Y-%m-%d format")
+
+  }
+
+  if (all(is.na(as.Date(as.character(Buy_Date),format="%Y-%m-%d")))) {
+
+    stop("Buy_Date argument should be a Date with %Y-%m-%d format")
+
+  }
+
+  Mat_Date = as.Date(Buy_Date)
+  Buy_Date = as.Date(Buy_Date)
+  y = as.numeric(floor((Mat_Date - Buy_Date) / 365.25))
+  Cou_Date = seq(from = Mat_Date, by = paste("-", y + 1, " years", sep = ""), length.out = 2)[2]
+  d = as.numeric(Buy_Date - Cou_Date)
 
   van = function(i = i, n = n, y = y, c = c, d = d, p = p) {
 
@@ -29,7 +40,7 @@ tir  = function(n = n, y = y, c = c, d = d, p = p) {
     return(van)
   }
 
-  tir = optimize(van, c(-1, 1), n = n, y = y, c = c, d = d, p = p, tol = 1e-9)$minimum * 100
+  irr = optimize(van, c(-1, 1), n = nominal, y = y, c = coupon, d = d, p = price, tol = 1e-9)$minimum * 100
 
-  return(tir)
+  return(irr)
 }
